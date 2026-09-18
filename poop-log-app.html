@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>毎日の排便記録</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#7A4A2B">
+<style>
+  :root{
+    --cream:#FBF3E3;
+    --milk:#FFFDF8;
+    --barn:#7A4A2B;
+    --barn-dark:#5A331C;
+    --pasture:#6FA05A;
+    --pasture-dark:#4F7A3E;
+    --butter:#F2B84B;
+    --clover:#E86A6A;
+    --line:#E4D5B8;
+    --ink:#3A2C1D;
+    --ink-soft:#7A6A55;
+    --radius-lg:22px;
+    --radius-md:14px;
+    --radius-sm:9px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0; overflow-x:hidden;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:"Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    min-height:100vh;
+  }
+  #app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    padding:16px 16px 40px;
+    display:flex;
+    flex-direction:column;
+  }
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:14px;
+    min-height:34px;
+  }
+  .back-btn{
+    background:var(--milk);
+    border:2px solid var(--line);
+    border-radius:999px;
+    width:38px;height:38px;
+    font-size:18px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--barn);
+    cursor:pointer;
+    flex:0 0 auto;
+  }
+  .topbar h1{
+    font-size:17px;
+    margin:0;
+    color:var(--barn-dark);
+    font-weight:800;
+    letter-spacing:.02em;
+  }
+  /* ---------- home ---------- */
+  .home-title{
+    text-align:center;
+    margin:6px 0 22px;
+  }
+  .home-title .emoji-row{font-size:30px; line-height:1;}
+  .home-title h1{
+    font-size:19px;
+    color:var(--barn-dark);
+    margin:6px 0 0;
+    font-weight:800;
+  }
+  .main-record-btn{
+    display:block;
+    width:100%;
+    background:linear-gradient(180deg,#8B5A34,#6E4325);
+    color:#FFF6E4;
+    border:none;
+    border-radius:26px;
+    padding:26px 10px;
+    font-size:22px;
+    font-weight:800;
+    text-align:center;
+    box-shadow:0 8px 0 #4a2e18, 0 10px 16px rgba(74,46,24,.25);
+    cursor:pointer;
+    margin-bottom:16px;
+    transition:transform .05s;
+  }
+  .main-record-btn:active{ transform:translateY(4px); box-shadow:0 4px 0 #4a2e18; }
+  .sub-btn-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:20px;
+  }
+  .sub-btn-row .sub-btn:first-child{ grid-column:1 / span 2; }
+  .sub-btn{
+    background:var(--milk);
+    border:2px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:14px 8px;
+    font-size:14.5px;
+    font-weight:700;
+    color:var(--barn-dark);
+    text-align:center;
+    cursor:pointer;
+  }
+  .sub-btn:active{ background:#F3E9D3; }
+  .today-card{
+    background:var(--milk);
+    border:2px dashed var(--butter);
+    border-radius:var(--radius-lg);
+    padding:16px;
+    margin-top:4px;
+  }
+  .today-card h3{
+    margin:0 0 10px;
+    font-size:14px;
+    color:var(--barn);
+    font-weight:800;
+  }
+  .today-card .stars{ font-size:18px; letter-spacing:2px; }
+  .today-card .meta-line{ font-size:13px; color:var(--ink-soft); margin-top:2px; }
+  .today-empty{ color:var(--ink-soft); font-size:13.5px; text-align:center; padding:6px 0; }
+
+  /* ---------- generic sections/cards ---------- */
+  .section{
+    background:var(--milk);
+    border-radius:var(--radius-lg);
+    border:1.5px solid var(--line);
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .section h2{
+    font-size:14px;
+    margin:0 0 10px;
+    color:var(--barn);
+    font-weight:800;
+  }
+  .field-label{
+    font-size:13px;
+    color:var(--ink-soft);
+    font-weight:700;
+    margin:14px 0 6px;
+  }
+  .field-label:first-child{ margin-top:0; }
+  .req-mark{ color:var(--clover); font-weight:800; margin-left:2px; font-size:11px; }
+
+  .btn-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .opt-btn{
+    background:var(--cream);
+    border:2px solid var(--line);
+    border-radius:999px;
+    padding:9px 14px;
+    font-size:13.5px;
+    color:var(--ink);
+    cursor:pointer;
+    font-weight:600;
+  }
+  .opt-btn.selected{
+    background:var(--pasture);
+    border-color:var(--pasture-dark);
+    color:#fff;
+  }
+  .opt-btn.na{ opacity:.7; }
+
+  .bristol-grid{ display:flex; flex-direction:column; gap:8px; }
+  .bristol-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border:2px solid var(--line);
+    background:var(--cream);
+    border-radius:var(--radius-md);
+    padding:9px 12px;
+    cursor:pointer;
+  }
+  .bristol-item.selected{ background:#EAF3E4; border-color:var(--pasture); }
+  .bristol-item .num-badge{
+    background:var(--barn);
+    color:#fff;
+    width:24px;height:24px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;
+    flex:0 0 auto;
+  }
+  .bristol-item .desc{ font-size:13px; }
+
+  textarea, input[type=number], input[type=date], input[type=time]{
+    box-sizing:border-box;
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    border:2px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:10px 8px;
+    font-size:clamp(12px,3.6vw,14px);
+    font-family:inherit;
+    background:var(--cream);
+    color:var(--ink);
+  }
+  textarea{ min-height:64px; resize:vertical; }
+
+  /* 「日時」カードだけに閉じたレイアウト（他の入力欄には影響しません） */
+  .datetime-card{
+    box-sizing:border-box;
+    padding-left:16px;
+    padding-right:16px;
+  }
+  .datetime-row{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:10px;
+    width:100%;
+    box-sizing:border-box;
+  }
+  .datetime-col{
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+  }
+  .datetime-col input{
+    -webkit-appearance:none;
+    appearance:none;
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+    padding:10px 6px;
+    font-size:clamp(11px,3.2vw,14px);
+  }
+
+  .save-btn{
+    display:block;
+    width:100%;
+    background:var(--pasture);
+    color:#fff;
+    border:none;
+    border-radius:var(--radius-lg);
+    padding:16px;
+    font-size:16.5px;
+    font-weight:800;
+    cursor:pointer;
+    box-shadow:0 6px 0 var(--pasture-dark);
+    margin-top:6px;
+  }
+  .save-btn:active{ transform:translateY(3px); box-shadow:0 3px 0 var(--pasture-dark); }
+  .delete-btn{
+    display:block;
+    width:100%;
+    background:#FBEAEA;
+    color:var(--clover);
+    border:2px solid var(--clover);
+    border-radius:var(--radius-lg);
+    padding:13px;
+    font-size:14.5px;
+    font-weight:800;
+    cursor:pointer;
+    margin-top:10px;
+  }
+  .ghost-btn{
+    display:block;
+    width:100%;
+    background:transparent;
+    border:2px dashed var(--line);
+    color:var(--ink-soft);
+    border-radius:var(--radius-md);
+    padding:11px;
+    font-size:13.5px;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  /* records list */
+  .day-group{
+    background:var(--milk);
+    border:1.5px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:14px 16px;
+    margin-bottom:10px;
+    cursor:pointer;
+  }
+  .day-group .day-title{
+    font-weight:800;
+    color:var(--barn-dark);
+    font-size:15px;
+    margin-bottom:6px;
+  }
+  .day-group .tag{
+    display:inline-block;
+    font-size:11.5px;
+    background:#EAF3E4;
+    color:var(--pasture-dark);
+    border-radius:999px;
+    padding:2px 9px;
+    margin:2px 4px 2px 0;
+    font-weight:700;
+  }
+  .day-group .poop-line{ font-size:13px; color:var(--ink-soft); margin-top:3px; }
+
+  .detail-row{
+    display:flex;
+    justify-content:space-between;
+    padding:8px 0;
+    border-bottom:1px solid var(--line);
+    font-size:13.5px;
+  }
+  .detail-row:last-child{ border-bottom:none; }
+  .detail-row .k{ color:var(--ink-soft); font-weight:700; }
+  .detail-row .v{ font-weight:700; text-align:right; }
+  .memo-box{
+    background:var(--cream);
+    border-radius:var(--radius-sm);
+    padding:10px 12px;
+    font-size:13.5px;
+    white-space:pre-wrap;
+    margin-top:6px;
+    color:var(--ink);
+  }
+
+  .empty-msg{ text-align:center; color:var(--ink-soft); font-size:13.5px; padding:30px 10px; }
+
+  .obs-def-chip{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--cream);
+    border:2px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  .obs-def-chip .name{ font-weight:800; font-size:14px; }
+  .obs-def-chip .del-x{
+    color:var(--clover); font-weight:800; cursor:pointer; padding:2px 8px; font-size:13px;
+  }
+  .obs-entry-card{
+    border:1.5px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:10px 12px;
+    margin-top:8px;
+    background:var(--milk);
+  }
+  .obs-entry-card .row{ display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+  .obs-entry-card .row > *{ flex:1; min-width:70px; }
+  .obs-add-form-btn{
+    margin-top:2px;
+    background:none;
+    border:none;
+    color:var(--pasture-dark);
+    font-weight:800;
+    font-size:13px;
+    cursor:pointer;
+    padding:6px 0;
+  }
+  .mini-list{ font-size:12.5px; color:var(--ink-soft); margin-top:4px; }
+  .mini-list .item{ display:flex; justify-content:space-between; padding:4px 0; border-top:1px dashed var(--line); }
+  .mini-list .item .x{ color:var(--clover); cursor:pointer; font-weight:800; padding:0 6px;}
+
+  .meal-card{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    border:2px solid var(--line);
+    background:var(--cream);
+    border-radius:var(--radius-md);
+    padding:10px 12px;
+    margin-bottom:8px;
+    cursor:pointer;
+  }
+  .meal-card .meal-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-weight:800;
+    font-size:13.5px;
+    color:var(--barn-dark);
+  }
+  .meal-card .meal-foods{ font-size:13px; color:var(--ink); }
+  .meal-card .meal-features{ font-size:11.5px; color:var(--pasture-dark); }
+  .meal-card .meal-memo{ font-size:12px; color:var(--ink-soft); }
+  .meal-form{
+    border:1.5px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:12px;
+    margin-top:6px;
+    margin-bottom:10px;
+    background:var(--milk);
+  }
+  .meal-form .row{ display:flex; gap:8px; margin-bottom:10px; }
+  .meal-form .row > *{ flex:1; }
+  .meal-form-actions{ display:flex; gap:8px; margin-top:4px; }
+  .meal-form-actions button{ flex:1; }
+
+  .csv-out{
+    width:100%;
+    min-height:100px;
+    font-size:11px;
+    font-family:monospace;
+    border:2px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:8px;
+    background:var(--cream);
+    margin-top:8px;
+  }
+  .export-row{ display:flex; gap:8px; margin-top:8px; }
+  .export-row button{ flex:1; }
+  .small-btn{
+    background:var(--barn);
+    color:#fff;
+    border:none;
+    border-radius:var(--radius-sm);
+    padding:10px;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .toast{
+    position:fixed;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--barn-dark);
+    color:#fff;
+    padding:10px 18px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:700;
+    z-index:99;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s;
+  }
+  .toast.show{ opacity:1; }
+  .loading-wrap{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:60vh;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+</style>
+</head>
+<body>
+<div id="app"><div class="loading-wrap">🚽 読み込み中…</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ======================================================================
+   毎日の排便記録アプリ
+   ====================================================================== */
+
+const STORAGE_KEY = "poop-log-app-data";
+
+const OPTIONS = {
+  amount: ["少ない","普通","多い","判定不能"],
+  ease: ["楽","普通","出しにくい"],
+  incomplete_feeling: ["なし","少しあり","あり"],
+  yes_no: ["あり","なし"],
+  activity_level: ["なし","少ない","普通","多い"],
+  meal_type: ["朝食","昼食","夕食","間食","その他"],
+  meal_features: ["外食","脂っこい","甘いもの","発酵食品","食物繊維多め","いつもより多い"]
+};
+
+const MEAL_TYPE_EMOJI = {
+  "朝食":"🍳", "昼食":"🍱", "夕食":"🍽️", "間食":"🍰", "その他":"🍴"
+};
+
+const BRISTOL = [
+  {n:1, d:"硬いコロコロ便"},
+  {n:2, d:"コロコロがつながった形"},
+  {n:3, d:"表面にひびのある一本便"},
+  {n:4, d:"滑らかで柔らかい一本便"},
+  {n:5, d:"柔らかい小さな塊"},
+  {n:6, d:"崩れた泥状便"},
+  {n:7, d:"水様便"}
+];
+
+const CALMNESS = [
+  {n:1, d:"かなり落ち着かない"},
+  {n:2, d:"やや落ち着かない"},
+  {n:3, d:"普通"},
+  {n:4, d:"落ち着いている"},
+  {n:5, d:"かなり落ち着いている"}
+];
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function pad2(n){ return n.toString().padStart(2,"0"); }
+function todayStr(d){ d = d || new Date(); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function nowTimeStr(d){ d = d || new Date(); return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
+function dateLabel(dateStr){
+  if(!dateStr) return "";
+  const [y,m,d] = dateStr.split("-");
+  return `${y}年${parseInt(m)}月${parseInt(d)}日`;
+}
+
+function defaultData(){
+  return {
+    bowelRecords: [],
+    dailyLogs: {},        // date -> {...fields}
+    observationDefs: [],  // [{id,name}]
+    observationLogs: [],  // [{id,date,time,name,value,amount,unit,memo}]
+    mealLogs: []           // [{id,date,time,meal_type,foods,features:[],memo}]
+  };
+}
+
+let data = defaultData();
+let state = {
+  screen: "home",       // home | bowelForm | bowelDetail | lifeLog | records | dayDetail | export
+  draft: null,           // working copy for bowelForm
+  editingBowelId: null,
+  lifeLogDate: null,
+  detailBowelId: null,
+  dayDetailDate: null,
+  obsAddOpenFor: null,   // observationDef id currently showing "add entry" mini form
+  obsDraft: null,
+  mealFormOpen: false,   // whether the meal add/edit mini form is open
+  mealDraft: null        // working copy of the meal being added/edited
+};
+
+let saveTimer = null;
+
+async function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      data = Object.assign(defaultData(), parsed);
+    }
+  }catch(e){
+    // no existing data yet, or localStorage unavailable - start fresh
+    data = defaultData();
+  }
+}
+
+async function persist(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){
+    showToast("⚠️ 保存エラー（ブラウザのストレージを確認してください）");
+  }
+}
+
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(()=>t.classList.remove("show"), 1600);
+}
+
+function goto(screen, extra){
+  state.screen = screen;
+  Object.assign(state, extra || {});
+  render();
+  window.scrollTo(0,0);
+}
+
+/* ============================ HOME ============================ */
+
+function latestBowelToday(){
+  const t = todayStr();
+  const todays = data.bowelRecords.filter(r=>r.date===t);
+  if(todays.length===0) return null;
+  return todays.reduce((a,b)=> (b.time||"") >= (a.time||"") ? b : a);
+}
+
+function renderHome(){
+  const latest = latestBowelToday();
+  let card;
+  if(latest){
+    card = `
+      <div class="today-card">
+        <h3>🚽 本日の記録</h3>
+        <div class="meta-line">${latest.bristol_type ? "Bristol "+latest.bristol_type : "Bristol 未記録"} ／ 量：${latest.amount||"未記録"}</div>
+        <div class="meta-line">出しやすさ：${latest.ease||"未記録"} ／ 残便感：${latest.incomplete_feeling||"未記録"}</div>
+        <div class="meta-line">${latest.time||""}</div>
+      </div>`;
+  } else {
+    card = `<div class="today-card"><div class="today-empty">まだ本日の記録はありません 🚽</div></div>`;
+  }
+
+  return `
+    <div class="home-title">
+      <div class="emoji-row">🚽📋</div>
+      <h1>毎日の排便記録</h1>
+    </div>
+    <button class="main-record-btn" data-action="new-bowel">💩 排便を記録する</button>
+    <div class="sub-btn-row">
+      <div class="sub-btn" data-action="goto" data-screen="lifeLog-today">📝 生活ログ</div>
+      <div class="sub-btn" data-action="goto" data-screen="records">📚 記録を見る</div>
+      <div class="sub-btn" data-action="goto" data-screen="export">📊 データ出力</div>
+    </div>
+    ${card}
+  `;
+}
+
+/* ========================= BOWEL FORM ========================= */
+
+function newBowelDraft(){
+  const now = new Date();
+  return {
+    id: uid(),
+    date: todayStr(now),
+    time: nowTimeStr(now),
+    bristol_type: null,
+    amount: null,
+    ease: null,
+    incomplete_feeling: null,
+    strain: null,
+    bloating: null,
+    urge: null,
+    suppressed_urge: null,
+    memo: ""
+  };
+}
+
+function optBtnGroup(field, options, allowNA){
+  const val = state.draft[field];
+  return `<div class="btn-grid" data-field="${field}">` +
+    options.map(o=>`<div class="opt-btn ${val===o?'selected':''}" data-action="set-draft" data-field="${field}" data-value="${o}">${o}</div>`).join("") +
+  `</div>`;
+}
+
+function renderBowelForm(){
+  const d = state.draft;
+  const isEdit = data.bowelRecords.some(r=>r.id===d.id);
+  return `
+    <div class="topbar">
+      <div class="back-btn" data-action="goto" data-screen="home">←</div>
+      <h1>💩 排便を記録する</h1>
+    </div>
+
+    <div class="section datetime-card">
+      <h2>日時</h2>
+      <div class="datetime-row">
+        <div class="datetime-col"><input type="date" value="${d.date}" data-field="date" class="draft-input"></div>
+        <div class="datetime-col"><input type="time" value="${d.time}" data-field="time" class="draft-input"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Bristol便形状</h2>
+      <div class="bristol-grid">
+        ${BRISTOL.map(b=>`
+          <div class="bristol-item ${d.bristol_type===b.n?'selected':''}" data-action="set-draft" data-field="bristol_type" data-value="${b.n}">
+            <div class="num-badge">${b.n}</div>
+            <div class="desc">${b.d}</div>
+          </div>`).join("")}
+        <div class="bristol-item ${d.bristol_type===null?'selected':''}" data-action="set-draft" data-field="bristol_type" data-value="">
+          <div class="num-badge">–</div>
+          <div class="desc">未記録</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>排便の様子</h2>
+      <div class="field-label">便の量</div>${optBtnGroup("amount", OPTIONS.amount)}
+      <div class="field-label">出しやすさ</div>${optBtnGroup("ease", OPTIONS.ease)}
+      <div class="field-label">残便感</div>${optBtnGroup("incomplete_feeling", OPTIONS.incomplete_feeling)}
+      <div class="field-label">いきみ</div>${optBtnGroup("strain", OPTIONS.yes_no)}
+    </div>
+
+    <div class="section">
+      <h2>身体・便意</h2>
+      <div class="field-label">お腹の張り</div>${optBtnGroup("bloating", OPTIONS.yes_no)}
+      <div class="field-label">便意</div>${optBtnGroup("urge", OPTIONS.yes_no)}
+      <div class="field-label">便意の我慢</div>${optBtnGroup("suppressed_urge", OPTIONS.yes_no)}
+    </div>
+
+    <div class="section">
+      <h2>自由メモ</h2>
+      <textarea id="bowel-memo" placeholder="気づいたことを自由に…">${d.memo||""}</textarea>
+    </div>
+
+    <button class="save-btn" data-action="save-bowel">💩 保存</button>
+    ${isEdit ? `<button class="delete-btn" data-action="delete-bowel">この記録を削除する</button>` : ""}
+  `;
+}
+
+function bindBowelFormEvents(){
+  document.querySelectorAll(".draft-input").forEach(el=>{
+    el.addEventListener("change", (e)=>{
+      state.draft[e.target.dataset.field] = e.target.value;
+    });
+  });
+  const memo = document.getElementById("bowel-memo");
+  if(memo){
+    memo.addEventListener("input", (e)=>{ state.draft.memo = e.target.value; });
+  }
+}
+
+async function saveBowel(){
+  const d = state.draft;
+  if(!d.date || !d.time){ showToast("日時を入力してください"); return; }
+  const idx = data.bowelRecords.findIndex(r=>r.id===d.id);
+  const record = Object.assign({}, d);
+  if(idx>=0){ data.bowelRecords[idx] = record; }
+  else { data.bowelRecords.push(record); }
+  await persist();
+  showToast("💩 保存しました");
+  goto("home");
+}
+
+async function deleteBowelDraftRecord(){
+  data.bowelRecords = data.bowelRecords.filter(r=>r.id!==state.draft.id);
+  await persist();
+  showToast("削除しました");
+  goto("home");
+}
+
+/* ========================= BOWEL DETAIL ========================= */
+
+function renderBowelDetail(){
+  const r = data.bowelRecords.find(x=>x.id===state.detailBowelId);
+  if(!r) return `<div class="empty-msg">記録が見つかりません</div>`;
+  const rows = [
+    ["Bristol", r.bristol_type || "未記録"],
+    ["量", r.amount || "未記録"],
+    ["出しやすさ", r.ease || "未記録"],
+    ["残便感", r.incomplete_feeling || "未記録"],
+    ["いきみ", r.strain || "未記録"],
+    ["お腹の張り", r.bloating || "未記録"],
+    ["便意", r.urge || "未記録"],
+    ["便意の我慢", r.suppressed_urge || "未記録"],
+  ];
+  return `
+    <div class="topbar">
+      <div class="back-btn" data-action="back-from-detail">←</div>
+      <h1>${dateLabel(r.date)} ${r.time}</h1>
+    </div>
+    <div class="section">
+      ${rows.map(([k,v])=>`<div class="detail-row"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("")}
+      ${r.memo ? `<div class="memo-box">${escapeHtml(r.memo)}</div>` : ""}
+    </div>
+    <button class="save-btn" data-action="edit-bowel" data-id="${r.id}">編集</button>
+    <button class="delete-btn" data-action="delete-bowel-from-detail" data-id="${r.id}">削除</button>
+  `;
+}
+
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+}
+
+/* ========================= LIFE LOG ========================= */
+
+function ensureDailyLog(date){
+  if(!data.dailyLogs[date]){
+    data.dailyLogs[date] = {
+      sleep_hours:"", calmness_score:null, calmness_memo:"",
+      steps:"", activity_level:null, exercise_memo:"",
+      water_ml:"", food_memo:"", daily_memo:""
+    };
+  }
+  return data.dailyLogs[date];
+}
+
+function renderLifeLog(){
+  const date = state.lifeLogDate || todayStr();
+  const log = ensureDailyLog(date);
+
+  const obsSection = data.observationDefs.map(def=>{
+    const entries = data.observationLogs.filter(o=>o.date===date && o.obsId===def.id);
+    const showForm = state.obsAddOpenFor === def.id;
+    return `
+      <div class="obs-def-chip" style="flex-direction:column; align-items:stretch;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="name">🔬 ${escapeHtml(def.name)}</div>
+          <div class="del-x" data-action="remove-obs-def" data-id="${def.id}">削除</div>
+        </div>
+        ${entries.length ? `<div class="mini-list">${entries.map(e=>`
+          <div class="item">
+            <span>${e.time||""} ${e.value} ${e.amount?e.amount+(e.unit||""):""} ${e.memo? "・"+escapeHtml(e.memo):""}</span>
+            <span class="x" data-action="remove-obs-log" data-id="${e.id}">×</span>
+          </div>`).join("")}</div>` : ""}
+        ${showForm ? renderObsMiniForm(def) : `<div class="obs-add-form-btn" data-action="open-obs-form" data-id="${def.id}">＋記録を追加</div>`}
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <div class="topbar">
+      <div class="back-btn" data-action="goto" data-screen="home">←</div>
+      <h1>📝 生活ログ</h1>
+    </div>
+
+    <div class="section">
+      <h2>日付</h2>
+      <input type="date" value="${date}" id="lifelog-date">
+    </div>
+
+    <div class="section">
+      <h2>睡眠</h2>
+      <div class="field-label">睡眠時間（h）</div>
+      <input type="number" step="0.1" id="ll-sleep" value="${log.sleep_hours}" placeholder="例：7.5">
+    </div>
+
+    <div class="section">
+      <h2>心理状態（落ち着き度）</h2>
+      <div class="btn-grid">
+        ${CALMNESS.map(c=>`<div class="opt-btn ${log.calmness_score===c.n?'selected':''}" data-action="set-log" data-field="calmness_score" data-value="${c.n}">${c.n}：${c.d}</div>`).join("")}
+      </div>
+      <div class="field-label">メモ</div>
+      <textarea id="ll-calm-memo" placeholder="自由メモ">${log.calmness_memo||""}</textarea>
+    </div>
+
+    <div class="section">
+      <h2>身体活動</h2>
+      <div class="field-label">歩数</div>
+      <input type="number" id="ll-steps" value="${log.steps}" placeholder="例：6500">
+      <div class="field-label">運動量</div>
+      <div class="btn-grid">
+        ${OPTIONS.activity_level.map(o=>`<div class="opt-btn ${log.activity_level===o?'selected':''}" data-action="set-log" data-field="activity_level" data-value="${o}">${o}</div>`).join("")}
+      </div>
+      <div class="field-label">運動メモ</div>
+      <textarea id="ll-ex-memo" placeholder="例：食後に踏み台昇降10分×2回">${log.exercise_memo||""}</textarea>
+    </div>
+
+    <div class="section">
+      <h2>水分</h2>
+      <div class="field-label">1日の水分摂取量（ml）</div>
+      <input type="number" id="ll-water" value="${log.water_ml}" placeholder="不明なら空欄でOK">
+    </div>
+
+    <div class="section">
+      <h2>🍽️ 食事</h2>
+      ${renderMealSection(date)}
+    </div>
+
+    <div class="section">
+      <h2>その日の総合メモ</h2>
+      <textarea id="ll-daily-memo" placeholder="自由メモ">${log.daily_memo||""}</textarea>
+    </div>
+
+    <div class="section">
+      <h2>🔬 観察対象</h2>
+      ${obsSection || `<div class="empty-msg" style="padding:12px 0;">観察対象がまだありません</div>`}
+      <div class="ghost-btn" data-action="add-obs-def" style="margin-top:6px;">＋観察対象を追加</div>
+    </div>
+
+    <button class="save-btn" data-action="save-lifelog">📝 保存</button>
+  `;
+}
+
+function renderObsMiniForm(def){
+  const draft = state.obsDraft || {value:"あり", amount:"", unit:"", time:nowTimeStr(), memo:""};
+  return `
+    <div class="obs-entry-card">
+      <div class="row">
+        <div class="opt-btn ${draft.value==='あり'?'selected':''}" data-action="obsdraft-set" data-field="value" data-value="あり">摂取あり</div>
+        <div class="opt-btn ${draft.value==='なし'?'selected':''}" data-action="obsdraft-set" data-field="value" data-value="なし">摂取なし</div>
+      </div>
+      <div class="row">
+        <input type="time" id="obs-time" value="${draft.time}">
+        <input type="number" id="obs-amount" placeholder="量" value="${draft.amount}">
+        <input type="text" id="obs-unit" placeholder="単位(g/ml等)" value="${draft.unit}">
+      </div>
+      <textarea id="obs-memo" placeholder="メモ">${draft.memo}</textarea>
+      <div class="row" style="margin-top:2px;">
+        <button class="small-btn" data-action="confirm-obs-entry" data-id="${def.id}">追加する</button>
+        <button class="small-btn" style="background:#B8A88A;" data-action="cancel-obs-entry">やめる</button>
+      </div>
+    </div>
+  `;
+}
+
+function newMealDraft(date){
+  return {
+    id: uid(),
+    date: date,
+    time: nowTimeStr(),
+    meal_type: null,
+    foods: "",
+    features: [],
+    memo: ""
+  };
+}
+
+function renderMealSection(date){
+  const meals = data.mealLogs.filter(m=>m.date===date).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+  const editingId = (state.mealFormOpen && state.mealDraft) ? state.mealDraft.id : null;
+  const visible = meals.filter(m=>m.id!==editingId);
+
+  const list = visible.map(m=>`
+    <div class="meal-card" data-action="edit-meal" data-id="${m.id}">
+      <div class="meal-top">${MEAL_TYPE_EMOJI[m.meal_type]||"🍽️"}　${m.time||""}　${escapeHtml(m.meal_type||"未分類")}</div>
+      ${m.foods ? `<div class="meal-foods">${escapeHtml(m.foods)}</div>` : ""}
+      ${m.features && m.features.length ? `<div class="meal-features">${m.features.map(escapeHtml).join("・")}</div>` : ""}
+      ${m.memo ? `<div class="meal-memo">${escapeHtml(m.memo)}</div>` : ""}
+    </div>
+  `).join("");
+
+  return `
+    ${list}
+    ${(!list && !state.mealFormOpen) ? `<div class="empty-msg" style="padding:12px 0;">まだ食事記録がありません</div>` : ""}
+    ${state.mealFormOpen ? renderMealForm() : `<div class="ghost-btn" data-action="open-meal-form">＋ 食事を追加</div>`}
+  `;
+}
+
+function renderMealForm(){
+  const d = state.mealDraft;
+  const isEdit = data.mealLogs.some(m=>m.id===d.id);
+  return `
+    <div class="meal-form">
+      <div class="field-label">食事区分</div>
+      <div class="btn-grid">
+        ${OPTIONS.meal_type.map(t=>`<div class="opt-btn ${d.meal_type===t?'selected':''}" data-action="mealdraft-set" data-field="meal_type" data-value="${t}">${t}</div>`).join("")}
+      </div>
+      <div class="field-label">時刻</div>
+      <input type="time" id="meal-time" value="${d.time}">
+      <div class="field-label">食べたもの</div>
+      <input type="text" id="meal-foods" placeholder="例：玄米、卵、味噌汁" value="${escapeHtml(d.foods)}">
+      <div class="field-label">食事の特徴（複数選択可）</div>
+      <div class="btn-grid">
+        ${OPTIONS.meal_features.map(f=>`<div class="opt-btn ${d.features.includes(f)?'selected':''}" data-action="mealdraft-toggle-feature" data-value="${f}">${f}</div>`).join("")}
+      </div>
+      <div class="field-label">ひとことメモ</div>
+      <textarea id="meal-memo" placeholder="任意">${d.memo||""}</textarea>
+      <div class="meal-form-actions">
+        <button class="small-btn" data-action="confirm-meal">${isEdit?"保存する":"追加する"}</button>
+        <button class="small-btn" style="background:#B8A88A;" data-action="cancel-meal-entry">やめる</button>
+      </div>
+      ${isEdit ? `<button class="delete-btn" style="margin-top:8px;" data-action="delete-meal" data-id="${d.id}">この食事記録を削除</button>` : ""}
+    </div>
+  `;
+}
+
+function bindLifeLogEvents(){
+  const date = state.lifeLogDate || todayStr();
+  const log = ensureDailyLog(date);
+  const bind = (id, field, num)=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener("input", (e)=>{ log[field] = num ? e.target.value : e.target.value; });
+  };
+  bind("ll-sleep","sleep_hours");
+  bind("ll-calm-memo","calmness_memo");
+  bind("ll-steps","steps");
+  bind("ll-ex-memo","exercise_memo");
+  bind("ll-water","water_ml");
+  bind("ll-daily-memo","daily_memo");
+
+  const dateInput = document.getElementById("lifelog-date");
+  if(dateInput){
+    dateInput.addEventListener("change",(e)=>{
+      state.lifeLogDate = e.target.value;
+      state.obsAddOpenFor = null;
+      state.mealFormOpen = false;
+      state.mealDraft = null;
+      render();
+    });
+  }
+
+  ["obs-time","obs-amount","obs-unit","obs-memo"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){
+      el.addEventListener("input",(e)=>{
+        if(!state.obsDraft) return;
+        const map = {"obs-time":"time","obs-amount":"amount","obs-unit":"unit","obs-memo":"memo"};
+        state.obsDraft[map[id]] = e.target.value;
+      });
+    }
+  });
+
+  ["meal-time","meal-foods","meal-memo"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){
+      el.addEventListener("input",(e)=>{
+        if(!state.mealDraft) return;
+        const map = {"meal-time":"time","meal-foods":"foods","meal-memo":"memo"};
+        state.mealDraft[map[id]] = e.target.value;
+      });
+    }
+  });
+}
+
+async function saveLifeLog(){
+  await persist();
+  showToast("📝 保存しました");
+  goto("home");
+}
+
+/* ========================= RECORDS LIST ========================= */
+
+function allDatesSorted(){
+  const set = new Set([...Object.keys(data.dailyLogs), ...data.bowelRecords.map(r=>r.date)]);
+  return Array.from(set).sort().reverse();
+}
+
+function renderRecordsList(){
+  const dates = allDatesSorted();
+  if(dates.length===0){
+    return `
+      <div class="topbar"><div class="back-btn" data-action="goto" data-screen="home">←</div><h1>📚 記録を見る</h1></div>
+      <div class="empty-msg">まだ記録がありません 🚽</div>
+    `;
+  }
+  return `
+    <div class="topbar"><div class="back-btn" data-action="goto" data-screen="home">←</div><h1>📚 記録を見る</h1></div>
+    ${dates.map(date=>{
+      const hasLog = !!data.dailyLogs[date];
+      const poops = data.bowelRecords.filter(r=>r.date===date).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+      return `
+        <div class="day-group" data-action="open-day" data-date="${date}">
+          <div class="day-title">${dateLabel(date)}</div>
+          ${hasLog ? `<span class="tag">📝 生活ログ記録済み</span>` : ""}
+          ${poops.map(p=>`<div class="poop-line">💩 ${p.time}　Bristol${p.bristol_type||"未記録"}・量${p.amount||"未記録"}</div>`).join("")}
+        </div>
+      `;
+    }).join("")}
+  `;
+}
+
+function renderDayDetail(){
+  const date = state.dayDetailDate;
+  const log = data.dailyLogs[date];
+  const poops = data.bowelRecords.filter(r=>r.date===date).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+  return `
+    <div class="topbar"><div class="back-btn" data-action="goto" data-screen="records">←</div><h1>${dateLabel(date)}</h1></div>
+
+    <div class="section">
+      <h2>📝 生活ログ</h2>
+      ${log ? `
+        <div class="detail-row"><div class="k">睡眠</div><div class="v">${log.sleep_hours||"-"} 時間</div></div>
+        <div class="detail-row"><div class="k">落ち着き度</div><div class="v">${log.calmness_score||"-"}</div></div>
+        <div class="detail-row"><div class="k">歩数</div><div class="v">${log.steps||"-"}</div></div>
+        <div class="detail-row"><div class="k">運動量</div><div class="v">${log.activity_level||"-"}</div></div>
+        <div class="detail-row"><div class="k">水分</div><div class="v">${log.water_ml? log.water_ml+" ml":"-"}</div></div>
+        ${log.food_memo? `<div class="memo-box">🍚 ${escapeHtml(log.food_memo)}</div>`:""}
+        ${log.daily_memo? `<div class="memo-box">${escapeHtml(log.daily_memo)}</div>`:""}
+      ` : `<div class="empty-msg" style="padding:14px 0;">記録なし</div>`}
+      <div class="ghost-btn" style="margin-top:10px;" data-action="edit-lifelog-date" data-date="${date}">この日の生活ログを編集</div>
+    </div>
+
+    <div class="section">
+      <h2>💩 排便記録</h2>
+      ${poops.length? poops.map(p=>`
+        <div class="day-group" style="margin-bottom:8px;" data-action="open-bowel-detail" data-id="${p.id}">
+          <div class="day-title" style="font-size:14px;">${p.time}　Bristol${p.bristol_type||"未記録"}</div>
+          <div class="poop-line">量：${p.amount||"未記録"} ／ 出しやすさ：${p.ease||"未記録"}</div>
+        </div>
+      `).join("") : `<div class="empty-msg" style="padding:14px 0;">記録なし</div>`}
+    </div>
+  `;
+}
+
+/* ========================= OBSERVATION DEFS ========================= */
+
+async function addObservationDef(){
+  const name = prompt("観察対象の名前を入力してください（例：葛粉、発酵食品、外食など）");
+  if(!name) return;
+  data.observationDefs.push({id: uid(), name: name.trim()});
+  await persist();
+  render();
+}
+
+async function removeObservationDef(id){
+  if(!confirm("この観察対象を削除しますか？（過去の記録データは残ります）")) return;
+  data.observationDefs = data.observationDefs.filter(d=>d.id!==id);
+  await persist();
+  render();
+}
+
+/* ========================= EXPORT / CSV ========================= */
+
+function csvEscape(v){
+  if(v===null || v===undefined) return "";
+  const s = String(v);
+  if(/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+  return s;
+}
+
+function buildBowelCsv(){
+  const header = ["record_id","date","time","bristol_type","amount","ease","incomplete_feeling","strain","bloating","urge","suppressed_urge","memo"];
+  const rows = data.bowelRecords.slice().sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time)).map(r=>[
+    r.id, r.date, r.time, r.bristol_type ?? "", r.amount ?? "", r.ease ?? "",
+    r.incomplete_feeling ?? "", r.strain ?? "", r.bloating ?? "", r.urge ?? "", r.suppressed_urge ?? "", r.memo ?? ""
+  ]);
+  return [header, ...rows].map(row=>row.map(csvEscape).join(",")).join("\n");
+}
+
+function buildDailyCsv(){
+  const header = ["date","sleep_hours","calmness_score","steps","activity_level","exercise_memo","water_ml","food_memo","daily_memo"];
+  const dates = Object.keys(data.dailyLogs).sort();
+  const rows = dates.map(date=>{
+    const l = data.dailyLogs[date];
+    return [date, l.sleep_hours ?? "", l.calmness_score ?? "", l.steps ?? "", l.activity_level ?? "", l.exercise_memo ?? "", l.water_ml ?? "", l.food_memo ?? "", l.daily_memo ?? ""];
+  });
+  return [header, ...rows].map(row=>row.map(csvEscape).join(",")).join("\n");
+}
+
+function buildObsCsv(){
+  const header = ["date","time","observation_name","value","amount","unit","memo"];
+  const defsById = Object.fromEntries(data.observationDefs.map(d=>[d.id,d.name]));
+  const rows = data.observationLogs.slice().sort((a,b)=> (a.date+(a.time||"")).localeCompare(b.date+(b.time||""))).map(o=>[
+    o.date, o.time ?? "", defsById[o.obsId] ?? o.name ?? "(削除済み)", o.value ?? "", o.amount ?? "", o.unit ?? "", o.memo ?? ""
+  ]);
+  return [header, ...rows].map(row=>row.map(csvEscape).join(",")).join("\n");
+}
+
+function buildMealCsv(){
+  const header = ["meal_id","date","time","meal_type","foods","features","memo"];
+  const rows = data.mealLogs.slice().sort((a,b)=> (a.date+(a.time||"")).localeCompare(b.date+(b.time||""))).map(m=>[
+    m.id, m.date, m.time ?? "", m.meal_type ?? "", m.foods ?? "", (m.features||[]).join("/"), m.memo ?? ""
+  ]);
+  return [header, ...rows].map(row=>row.map(csvEscape).join(",")).join("\n");
+}
+
+function downloadCsv(filename, content){
+  try{
+    const blob = new Blob(["\uFEFF"+content], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }catch(e){
+    showToast("ダウンロードできません。下のテキストをコピーしてください");
+  }
+}
+
+function renderExport(){
+  return `
+    <div class="topbar"><div class="back-btn" data-action="goto" data-screen="home">←</div><h1>📊 データ出力</h1></div>
+    <div class="section">
+      <h2>bowel_log.csv（排便記録：${data.bowelRecords.length}件）</h2>
+      <div class="export-row">
+        <button class="small-btn" data-action="dl-bowel-csv">📥 ダウンロード</button>
+        <button class="small-btn" style="background:#B8A88A;" data-action="show-bowel-csv">表示</button>
+      </div>
+      <div id="bowel-csv-out"></div>
+    </div>
+    <div class="section">
+      <h2>daily_log.csv（生活ログ：${Object.keys(data.dailyLogs).length}件）</h2>
+      <div class="export-row">
+        <button class="small-btn" data-action="dl-daily-csv">📥 ダウンロード</button>
+        <button class="small-btn" style="background:#B8A88A;" data-action="show-daily-csv">表示</button>
+      </div>
+      <div id="daily-csv-out"></div>
+    </div>
+    <div class="section">
+      <h2>observation_log.csv（観察対象：${data.observationLogs.length}件）</h2>
+      <div class="export-row">
+        <button class="small-btn" data-action="dl-obs-csv">📥 ダウンロード</button>
+        <button class="small-btn" style="background:#B8A88A;" data-action="show-obs-csv">表示</button>
+      </div>
+      <div id="obs-csv-out"></div>
+    </div>
+    <div class="section">
+      <h2>meal_log.csv（食事記録：${data.mealLogs.length}件）</h2>
+      <div class="export-row">
+        <button class="small-btn" data-action="dl-meal-csv">📥 ダウンロード</button>
+        <button class="small-btn" style="background:#B8A88A;" data-action="show-meal-csv">表示</button>
+      </div>
+      <div id="meal-csv-out"></div>
+    </div>
+    <div class="empty-msg" style="padding:0 4px;">ダウンロードがうまくいかない場合は「表示」を押して、テキストを長押し選択してコピーしてください。</div>
+  `;
+}
+
+/* ========================= MAIN RENDER ========================= */
+
+function render(){
+  const app = document.getElementById("app");
+  let html = "";
+  switch(state.screen){
+    case "home": html = renderHome(); break;
+    case "bowelForm": html = renderBowelForm(); break;
+    case "bowelDetail": html = renderBowelDetail(); break;
+    case "lifeLog": html = renderLifeLog(); break;
+    case "records": html = renderRecordsList(); break;
+    case "dayDetail": html = renderDayDetail(); break;
+    case "export": html = renderExport(); break;
+    default: html = renderHome();
+  }
+  app.innerHTML = html;
+  if(state.screen==="bowelForm") bindBowelFormEvents();
+  if(state.screen==="lifeLog") bindLifeLogEvents();
+}
+
+/* ========================= EVENT DELEGATION ========================= */
+
+document.getElementById("app").addEventListener("click", async (e)=>{
+  const el = e.target.closest("[data-action]");
+  if(!el) return;
+  const action = el.dataset.action;
+
+  switch(action){
+    case "new-bowel":
+      state.draft = newBowelDraft();
+      goto("bowelForm");
+      break;
+
+    case "goto": {
+      const target = el.dataset.screen;
+      if(target === "lifeLog-today"){
+        state.lifeLogDate = todayStr();
+        state.obsAddOpenFor = null;
+        goto("lifeLog");
+      } else {
+        goto(target);
+      }
+      break;
+    }
+
+    case "set-draft": {
+      const field = el.dataset.field;
+      let val = el.dataset.value;
+      if(field==="bristol_type"){
+        val = val==="" ? null : parseInt(val);
+        state.draft[field] = val;
+      } else {
+        // optional single-select fields: tapping the selected option again clears it
+        state.draft[field] = (state.draft[field]===val) ? null : val;
+      }
+      render();
+      break;
+    }
+
+    case "save-bowel": await saveBowel(); break;
+    case "delete-bowel":
+      if(confirm("この記録を削除しますか？")) await deleteBowelDraftRecord();
+      break;
+
+    case "edit-bowel": {
+      const r = data.bowelRecords.find(x=>x.id===el.dataset.id);
+      state.draft = Object.assign({}, r);
+      goto("bowelForm");
+      break;
+    }
+    case "delete-bowel-from-detail":
+      if(confirm("この記録を削除しますか？")){
+        data.bowelRecords = data.bowelRecords.filter(r=>r.id!==el.dataset.id);
+        await persist();
+        showToast("削除しました");
+        goto("home");
+      }
+      break;
+    case "back-from-detail":
+      if(state.dayDetailDate){ goto("dayDetail"); } else { goto("records"); }
+      break;
+
+    case "open-bowel-detail":
+      goto("bowelDetail", {detailBowelId: el.dataset.id});
+      break;
+
+    case "open-day":
+      goto("dayDetail", {dayDetailDate: el.dataset.date});
+      break;
+
+    case "edit-lifelog-date":
+      state.lifeLogDate = el.dataset.date;
+      state.obsAddOpenFor = null;
+      goto("lifeLog");
+      break;
+
+    case "set-log": {
+      const date = state.lifeLogDate || todayStr();
+      const log = ensureDailyLog(date);
+      const field = el.dataset.field;
+      let val = el.dataset.value;
+      if(field==="calmness_score") val = parseInt(val);
+      log[field] = (log[field]===val) ? null : val;
+      render();
+      break;
+    }
+
+    case "save-lifelog": await saveLifeLog(); break;
+
+    case "add-obs-def": await addObservationDef(); break;
+    case "remove-obs-def": await removeObservationDef(el.dataset.id); break;
+
+    case "open-obs-form":
+      state.obsAddOpenFor = el.dataset.id;
+      state.obsDraft = {value:"あり", amount:"", unit:"", time:nowTimeStr(), memo:""};
+      render();
+      break;
+    case "cancel-obs-entry":
+      state.obsAddOpenFor = null;
+      state.obsDraft = null;
+      render();
+      break;
+    case "obsdraft-set":
+      state.obsDraft[el.dataset.field] = el.dataset.value;
+      render();
+      break;
+    case "confirm-obs-entry": {
+      const date = state.lifeLogDate || todayStr();
+      const entry = Object.assign({id:uid(), date, obsId: el.dataset.id}, state.obsDraft);
+      data.observationLogs.push(entry);
+      state.obsAddOpenFor = null;
+      state.obsDraft = null;
+      await persist();
+      render();
+      showToast("観察記録を追加しました");
+      break;
+    }
+    case "remove-obs-log":
+      data.observationLogs = data.observationLogs.filter(o=>o.id!==el.dataset.id);
+      await persist();
+      render();
+      break;
+
+    case "open-meal-form": {
+      const date = state.lifeLogDate || todayStr();
+      state.mealDraft = newMealDraft(date);
+      state.mealFormOpen = true;
+      render();
+      break;
+    }
+    case "edit-meal": {
+      const m = data.mealLogs.find(x=>x.id===el.dataset.id);
+      if(m){
+        state.mealDraft = Object.assign({}, m, {features: (m.features||[]).slice()});
+        state.mealFormOpen = true;
+        render();
+      }
+      break;
+    }
+    case "cancel-meal-entry":
+      state.mealFormOpen = false;
+      state.mealDraft = null;
+      render();
+      break;
+    case "mealdraft-set":
+      state.mealDraft[el.dataset.field] = el.dataset.value;
+      render();
+      break;
+    case "mealdraft-toggle-feature": {
+      const v = el.dataset.value;
+      const idx = state.mealDraft.features.indexOf(v);
+      if(idx>=0){ state.mealDraft.features.splice(idx,1); }
+      else { state.mealDraft.features.push(v); }
+      render();
+      break;
+    }
+    case "confirm-meal": {
+      const d = state.mealDraft;
+      if(!d.meal_type){ showToast("食事区分を選択してください"); break; }
+      const idx = data.mealLogs.findIndex(m=>m.id===d.id);
+      if(idx>=0){ data.mealLogs[idx] = Object.assign({}, d); }
+      else { data.mealLogs.push(Object.assign({}, d)); }
+      state.mealFormOpen = false;
+      state.mealDraft = null;
+      await persist();
+      render();
+      showToast("🍽️ 食事を記録しました");
+      break;
+    }
+    case "delete-meal":
+      if(confirm("この食事記録を削除しますか？")){
+        data.mealLogs = data.mealLogs.filter(m=>m.id!==el.dataset.id);
+        state.mealFormOpen = false;
+        state.mealDraft = null;
+        await persist();
+        render();
+        showToast("削除しました");
+      }
+      break;
+
+    case "dl-bowel-csv": downloadCsv("bowel_log.csv", buildBowelCsv()); break;
+    case "dl-daily-csv": downloadCsv("daily_log.csv", buildDailyCsv()); break;
+    case "dl-obs-csv": downloadCsv("observation_log.csv", buildObsCsv()); break;
+    case "dl-meal-csv": downloadCsv("meal_log.csv", buildMealCsv()); break;
+    case "show-bowel-csv":
+      document.getElementById("bowel-csv-out").innerHTML = `<textarea class="csv-out" readonly>${escapeHtml(buildBowelCsv())}</textarea>`;
+      break;
+    case "show-daily-csv":
+      document.getElementById("daily-csv-out").innerHTML = `<textarea class="csv-out" readonly>${escapeHtml(buildDailyCsv())}</textarea>`;
+      break;
+    case "show-obs-csv":
+      document.getElementById("obs-csv-out").innerHTML = `<textarea class="csv-out" readonly>${escapeHtml(buildObsCsv())}</textarea>`;
+      break;
+    case "show-meal-csv":
+      document.getElementById("meal-csv-out").innerHTML = `<textarea class="csv-out" readonly>${escapeHtml(buildMealCsv())}</textarea>`;
+      break;
+  }
+});
+
+/* ========================= INIT ========================= */
+
+(async function init(){
+  await loadData();
+  render();
+})();
+</script>
+</body>
+</html>

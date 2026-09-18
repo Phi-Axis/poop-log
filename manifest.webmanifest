@@ -1,0 +1,11 @@
+{
+  "name": "毎日の排便記録",
+  "short_name": "排便記録",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FBF3E3",
+  "theme_color": "#7A4A2B",
+  "icons": [
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

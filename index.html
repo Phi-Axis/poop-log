@@ -650,8 +650,8 @@ function renderBowelForm(){
     <div class="section datetime-card">
       <h2>日時</h2>
       <div class="datetime-row">
-        <div class="datetime-col"><input type="date" value="${d.date}" data-field="date" class="draft-input"></div>
-        <div class="datetime-col"><input type="time" value="${d.time}" data-field="time" class="draft-input"></div>
+        <div class="datetime-col"><input type="date" value="${escapeHtml(d.date)}" data-field="date" class="draft-input"></div>
+        <div class="datetime-col"><input type="time" value="${escapeHtml(d.time)}" data-field="time" class="draft-input"></div>
       </div>
     </div>
 
@@ -687,7 +687,7 @@ function renderBowelForm(){
 
     <div class="section">
       <h2>自由メモ</h2>
-      <textarea id="bowel-memo" placeholder="気づいたことを自由に…">${d.memo||""}</textarea>
+      <textarea id="bowel-memo" placeholder="気づいたことを自由に…">${escapeHtml(d.memo||"")}</textarea>
     </div>
 
     <button class="save-btn" data-action="save-bowel">💩 保存</button>
@@ -787,7 +787,7 @@ function renderLifeLog(){
         </div>
         ${entries.length ? `<div class="mini-list">${entries.map(e=>`
           <div class="item">
-            <span>${e.time||""} ${e.value} ${e.amount?e.amount+(e.unit||""):""} ${e.memo? "・"+escapeHtml(e.memo):""}</span>
+            <span>${escapeHtml(e.time||"")} ${escapeHtml(e.value||"")} ${e.amount?escapeHtml(e.amount)+escapeHtml(e.unit||""):""} ${e.memo? "・"+escapeHtml(e.memo):""}</span>
             <span class="x" data-action="remove-obs-log" data-id="${e.id}">×</span>
           </div>`).join("")}</div>` : ""}
         ${showForm ? renderObsMiniForm(def) : `<div class="obs-add-form-btn" data-action="open-obs-form" data-id="${def.id}">＋記録を追加</div>`}
@@ -803,13 +803,13 @@ function renderLifeLog(){
 
     <div class="section">
       <h2>日付</h2>
-      <input type="date" value="${date}" id="lifelog-date">
+      <input type="date" value="${escapeHtml(date)}" id="lifelog-date">
     </div>
 
     <div class="section">
       <h2>睡眠</h2>
       <div class="field-label">睡眠時間（h）</div>
-      <input type="number" step="0.1" id="ll-sleep" value="${log.sleep_hours}" placeholder="例：7.5">
+      <input type="number" step="0.1" id="ll-sleep" value="${escapeHtml(log.sleep_hours)}" placeholder="例：7.5">
     </div>
 
     <div class="section">
@@ -818,25 +818,25 @@ function renderLifeLog(){
         ${CALMNESS.map(c=>`<div class="opt-btn ${log.calmness_score===c.n?'selected':''}" data-action="set-log" data-field="calmness_score" data-value="${c.n}">${c.n}：${c.d}</div>`).join("")}
       </div>
       <div class="field-label">メモ</div>
-      <textarea id="ll-calm-memo" placeholder="自由メモ">${log.calmness_memo||""}</textarea>
+      <textarea id="ll-calm-memo" placeholder="自由メモ">${escapeHtml(log.calmness_memo||"")}</textarea>
     </div>
 
     <div class="section">
       <h2>身体活動</h2>
       <div class="field-label">歩数</div>
-      <input type="number" id="ll-steps" value="${log.steps}" placeholder="例：6500">
+      <input type="number" id="ll-steps" value="${escapeHtml(log.steps)}" placeholder="例：6500">
       <div class="field-label">運動量</div>
       <div class="btn-grid">
         ${OPTIONS.activity_level.map(o=>`<div class="opt-btn ${log.activity_level===o?'selected':''}" data-action="set-log" data-field="activity_level" data-value="${o}">${o}</div>`).join("")}
       </div>
       <div class="field-label">運動メモ</div>
-      <textarea id="ll-ex-memo" placeholder="例：食後に踏み台昇降10分×2回">${log.exercise_memo||""}</textarea>
+      <textarea id="ll-ex-memo" placeholder="例：食後に踏み台昇降10分×2回">${escapeHtml(log.exercise_memo||"")}</textarea>
     </div>
 
     <div class="section">
       <h2>水分</h2>
       <div class="field-label">1日の水分摂取量（ml）</div>
-      <input type="number" id="ll-water" value="${log.water_ml}" placeholder="不明なら空欄でOK">
+      <input type="number" id="ll-water" value="${escapeHtml(log.water_ml)}" placeholder="不明なら空欄でOK">
     </div>
 
     <div class="section">
@@ -846,7 +846,7 @@ function renderLifeLog(){
 
     <div class="section">
       <h2>その日の総合メモ</h2>
-      <textarea id="ll-daily-memo" placeholder="自由メモ">${log.daily_memo||""}</textarea>
+      <textarea id="ll-daily-memo" placeholder="自由メモ">${escapeHtml(log.daily_memo||"")}</textarea>
     </div>
 
     <div class="section">
@@ -868,11 +868,11 @@ function renderObsMiniForm(def){
         <div class="opt-btn ${draft.value==='なし'?'selected':''}" data-action="obsdraft-set" data-field="value" data-value="なし">摂取なし</div>
       </div>
       <div class="row">
-        <input type="time" id="obs-time" value="${draft.time}">
-        <input type="number" id="obs-amount" placeholder="量" value="${draft.amount}">
-        <input type="text" id="obs-unit" placeholder="単位(g/ml等)" value="${draft.unit}">
+        <input type="time" id="obs-time" value="${escapeHtml(draft.time)}">
+        <input type="number" id="obs-amount" placeholder="量" value="${escapeHtml(draft.amount)}">
+        <input type="text" id="obs-unit" placeholder="単位(g/ml等)" value="${escapeHtml(draft.unit)}">
       </div>
-      <textarea id="obs-memo" placeholder="メモ">${draft.memo}</textarea>
+      <textarea id="obs-memo" placeholder="メモ">${escapeHtml(draft.memo)}</textarea>
       <div class="row" style="margin-top:2px;">
         <button class="small-btn" data-action="confirm-obs-entry" data-id="${def.id}">追加する</button>
         <button class="small-btn" style="background:#B8A88A;" data-action="cancel-obs-entry">やめる</button>
@@ -924,7 +924,7 @@ function renderMealForm(){
         ${OPTIONS.meal_type.map(t=>`<div class="opt-btn ${d.meal_type===t?'selected':''}" data-action="mealdraft-set" data-field="meal_type" data-value="${t}">${t}</div>`).join("")}
       </div>
       <div class="field-label">時刻</div>
-      <input type="time" id="meal-time" value="${d.time}">
+      <input type="time" id="meal-time" value="${escapeHtml(d.time)}">
       <div class="field-label">食べたもの</div>
       <input type="text" id="meal-foods" placeholder="例：玄米、卵、味噌汁" value="${escapeHtml(d.foods)}">
       <div class="field-label">食事の特徴（複数選択可）</div>
@@ -932,7 +932,7 @@ function renderMealForm(){
         ${OPTIONS.meal_features.map(f=>`<div class="opt-btn ${d.features.includes(f)?'selected':''}" data-action="mealdraft-toggle-feature" data-value="${f}">${f}</div>`).join("")}
       </div>
       <div class="field-label">ひとことメモ</div>
-      <textarea id="meal-memo" placeholder="任意">${d.memo||""}</textarea>
+      <textarea id="meal-memo" placeholder="任意">${escapeHtml(d.memo||"")}</textarea>
       <div class="meal-form-actions">
         <button class="small-btn" data-action="confirm-meal">${isEdit?"保存する":"追加する"}</button>
         <button class="small-btn" style="background:#B8A88A;" data-action="cancel-meal-entry">やめる</button>
@@ -1082,7 +1082,13 @@ async function removeObservationDef(id){
 
 function csvEscape(v){
   if(v===null || v===undefined) return "";
-  const s = String(v);
+  let s = String(v);
+  // CSV/Formula Injection guard: a leading =, +, -, or @ can make spreadsheet
+  // apps (Excel, Sheets, Numbers) interpret the cell as a formula. Prefixing
+  // with a single quote keeps the original text intact but inert as a formula.
+  if(/^[=+\-@]/.test(s)){
+    s = "'" + s;
+  }
   if(/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
   return s;
 }
